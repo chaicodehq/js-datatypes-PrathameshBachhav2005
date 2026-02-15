@@ -48,4 +48,77 @@
  */
 export function analyzeUPITransactions(transactions) {
   // Your code here
+  if (!Array.isArray(transactions) || transactions.length === 0) {
+    return null;
+  }
+
+  const validTransactions = transactions.filter(txn =>
+    txn &&
+    (txn.type === "credit" || txn.type === "debit") &&
+    typeof txn.amount === "number" &&
+    txn.amount > 0
+  );
+
+  if (validTransactions.length === 0) return null;
+
+  const transactionCount = validTransactions.length;
+
+  const totalCredit = validTransactions
+    .filter(txn => txn.type === "credit")
+    .reduce((sum, txn) => sum + txn.amount, 0);
+
+  const totalDebit = validTransactions
+    .filter(txn => txn.type === "debit")
+    .reduce((sum, txn) => sum + txn.amount, 0);
+
+  const netBalance = totalCredit - totalDebit;
+
+  const totalAmount = validTransactions.reduce(
+    (sum, txn) => sum + txn.amount,
+    0
+  );
+
+  const avgTransaction = Math.round(totalAmount / transactionCount);
+
+  const highestTransaction = validTransactions.reduce((max, txn) =>
+    txn.amount > max.amount ? txn : max
+  );
+
+  const categoryBreakdown = validTransactions.reduce((acc, txn) => {
+    const category = txn.category;
+    acc[category] = (acc[category] || 0) + txn.amount;
+    return acc;
+  }, {});
+
+  const contactCount = {};
+  let frequentContact = null;
+  let maxCount = 0;
+
+  validTransactions.forEach(txn => {
+    const contact = txn.to;
+    contactCount[contact] = (contactCount[contact] || 0) + 1;
+
+    if (contactCount[contact] > maxCount) {
+      maxCount = contactCount[contact];
+      frequentContact = contact;
+    }
+  });
+
+  // Boolean checks
+  const allAbove100 = validTransactions.every(txn => txn.amount > 100);
+  const hasLargeTransaction = validTransactions.some(txn => txn.amount >= 5000);
+
+  return {
+    totalCredit,
+    totalDebit,
+    netBalance,
+    transactionCount,
+    avgTransaction,
+    highestTransaction,
+    categoryBreakdown,
+    frequentContact,
+    allAbove100,
+    hasLargeTransaction
+  };
+
 }
